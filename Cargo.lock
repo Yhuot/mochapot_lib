@@ -20,8 +20,14 @@ version = "0.0.0"
 dependencies = [
  "libc",
  "linux-raw-sys",
+ "mochapot_lib_macros",
  "windows-sys",
 ]
+
+[[package]]
+name = "mochapot_lib_macros"
+version = "0.1.0"
+source = "git+ssh://git@github.com/Yhuot/mochapot_lib_macros.git?tag=0.0.0-pre-release-2#a0ceccdd63421638884922fc24724fa47a182f7e"
 
 [[package]]
 name = "windows-link"

@@ -10,3 +10,4 @@ windows-sys = { version = "0.61.2", features = [
     "Win32_System_Threading",
     "Win32_Foundation"
 ] }
+mochapot_lib_macros = { git = "ssh://git@github.com/Yhuot/mochapot_lib_macros.git", tag = "0.0.0-pre-release-2" }
