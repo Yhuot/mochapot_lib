@@ -113,80 +113,89 @@ impl<T> InnerArch<T> {
     }
 }
 
-pub struct ArchGuard<'a, T> {
+pub struct ArchReader<'a, T> { 
     arch: &'a Arch<T>,
-    state: UnsafeCell<u32>, // 0 = inactive; 1 = reader; 2 = writer.
-    phantom: PhantomData<*const ()> // gotta make sure no dumbfucks try to move this accross threads
+    phantom: PhantomData<*const ()>
 }
 
-impl<T> ArchGuard<'_, T> {
-    pub fn time_off(&self) {
-        unsafe { 
-            match *self.state.get() {
-                1 => {
-                    self.arch.pointer.as_ref().lock.free_reader();
-                }
-                2 => {
-                    self.arch.pointer.as_ref().lock.free_writer();
-                }
-                _ => {}
-            }
-            *self.state.get() = 0;
+
+impl<'a, T> ArchReader<'a, T> {
+    fn spin(arch: &'a Arch<T>) -> Self{
+        unsafe {
+            arch.pointer.as_ref().lock.request_read();
+            return Self { arch: arch, phantom: Default::default() }
+        }
+    }
+
+    pub fn to_writer(self) -> ArchWriter<'a, T>{
+        let arch_ref = self.arch;
+        std::mem::drop(self);
+        return ArchWriter::spin(arch_ref);
+    }
+}
+
+impl<'a, T> Drop for ArchReader<'a, T> {
+    fn drop(&mut self) {
+        unsafe {
+            self.arch.pointer.as_ref().lock.free_reader();
         }
     }
 }
 
-impl<T> Deref for ArchGuard<'_, T> {
+impl<'a, T> Deref for ArchReader<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { 
-            match *self.state.get() {
-                0 => {
-                    *self.state.get() = 1;
-                    // if the guard itself is inactive, spin to acquire a reader.
-                    self.arch.pointer.as_ref().lock.request_read();
-                }
-                2 => {
-                    *self.state.get() = 1;
-                    // if the guard itself is a writer, free the writer and spin to acquire a reader.
-                    self.arch.pointer.as_ref().lock.free_writer();
-                    self.arch.pointer.as_ref().lock.request_read();
-                }
-                _ => {}
-            }
-            // only able to return AFTER has ensured no writer exists ANYWHERE
-            &self.arch.pointer.as_ref().value 
+        unsafe {
+            &self.arch.pointer.as_ref().value
         }
     }
 }
 
-impl<T> DerefMut for ArchGuard<'_, T> {
+pub struct ArchWriter<'a, T> { 
+    arch: &'a Arch<T>,
+    phantom: PhantomData<*const ()>
+}
+
+
+impl<'a, T> ArchWriter<'a, T> {
+    fn spin(arch: &'a Arch<T>) -> Self{
+        unsafe {
+            arch.pointer.as_ref().lock.request_write();
+            return Self { arch: arch, phantom: Default::default() }
+        }
+    }
+
+    pub fn to_reader(self) -> ArchReader<'a, T> {
+        let arch_ref = self.arch;
+        std::mem::drop(self);
+        return ArchReader::spin(arch_ref);
+    }
+}
+
+impl<'a, T> Drop for ArchWriter<'a, T> {
+    fn drop(&mut self) {
+        unsafe {
+            self.arch.pointer.as_ref().lock.free_writer();
+        }
+    }
+}
+
+impl<'a, T> Deref for ArchWriter<'a, T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe {
+            &self.arch.pointer.as_ref().value
+        }
+    }
+}
+
+impl<'a, T> DerefMut for ArchWriter<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe {
-            match *self.state.get() {
-                0 => {
-                    // if the guard itself is inactive, spin to acquire a writer.
-                    *self.state.get() = 2;
-                    self.arch.pointer.as_ref().lock.request_write();
-                }
-                1 => {
-                    *self.state.get() = 2;
-                    // if the guard itself is a reader, free the reader and spin to acquire a writer.
-                    self.arch.pointer.as_ref().lock.free_reader();
-                    self.arch.pointer.as_ref().lock.request_write();
-                }
-                _ => {}
-            }
-            // only able to return AFTER has ensured no other &mut T or &Ts exist ANYWHERE
-            return &mut (*self.arch.pointer.as_ptr()).value       
+            &mut (*self.arch.pointer.as_ptr()).value
         }
-    }
-}
-
-impl<T> Drop for ArchGuard<'_, T> {
-    fn drop(&mut self) {
-        self.time_off();
     }
 }
 
@@ -207,9 +216,14 @@ impl<T> Arch<T> {
         Arch { pointer: self.pointer }
     }
 
-    pub fn guard(&self) -> ArchGuard<'_, T> {
+    pub fn reader(&self) -> ArchReader<'_, T> {
         // start off Guard as inactive
-        return ArchGuard { arch: &self, state: UnsafeCell::new(0), phantom: Default::default() };
+        return ArchReader::spin(&self);
+    }
+
+    pub fn writer(&self) -> ArchWriter<'_, T> {
+        // start off Guard as inactive
+        return ArchWriter::spin(&self);
     }
 
     pub fn is_write_locked(&self) -> bool {
