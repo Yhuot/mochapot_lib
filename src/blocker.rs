@@ -2,7 +2,7 @@ use std::{marker::PhantomData, sync::atomic::{AtomicI32, Ordering}};
 
 use crate::helper_functions::{wait_for_memory, wake_all_by_memory};
 
-/// important warning: this fuckass blocker does not free itself on drop, I REPEAT: YOU CAN PERMALOCK YOURSELF! WHY DO YOU WANT THIS? i have no clue why you'd even use this, but don't! it's that simple! do not use this shit!
+/// important warning: this fuckass blocker does not free itself on drop, I REPEAT: YOU CAN PERMALOCK YOURSELF! WHY DO YOU WANT THIS? i have no clue why you'd even use this, but don't! it's that simple! do not use this shit! i don't even remember why i made this thing.
 pub struct UnsafeBlocker {
     // ref count, state, state==1 = blocked
     inner: *mut (AtomicI32, AtomicI32)

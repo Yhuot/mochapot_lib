@@ -1,4 +1,3 @@
-use std::cell::{UnsafeCell};
 use std::marker::PhantomData;
 use std::ops::DerefMut;
 use std::ptr::NonNull;
@@ -202,6 +201,9 @@ impl<'a, T> DerefMut for ArchWriter<'a, T> {
 pub struct Arch<T> {
     pointer: NonNull<InnerArch<T>>,
 }
+
+unsafe impl<T: Send> Send for Arch<T> {}
+unsafe impl<T: Send> Sync for Arch<T> {}
 
 impl<T> Arch<T> {
 
