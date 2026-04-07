@@ -103,6 +103,10 @@ impl<T> InnerArch<T> {
         nn.expect("What in the name of fuck.")
     }
 
+    // fn swap(&mut self, new_value: &mut T) {
+    //     mem::swap(&mut self.value, new_value);
+    // }
+
     fn raise(&self) -> i32{
         self.ref_count.fetch_add(1, Ordering::AcqRel)
     }
@@ -206,6 +210,15 @@ unsafe impl<T: Send> Send for Arch<T> {}
 unsafe impl<T: Send> Sync for Arch<T> {}
 
 impl<T> Arch<T> {
+
+    pub fn get(&self) -> T where T: Clone {
+        (*self.reader()).clone()
+    }
+
+    pub fn swap(&self, new_value: &mut T) {
+        let mut writer = self.writer();
+        std::mem::swap(&mut *writer, new_value);
+    }
 
     pub fn new(data: T) -> Arch<T> {
         Arch { pointer: InnerArch::new(data) }
