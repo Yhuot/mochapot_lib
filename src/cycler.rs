@@ -1,4 +1,4 @@
-use std::{sync::{RwLock, RwLockReadGuard, RwLockWriteGuard}};
+use std::{fmt::Debug, sync::{RwLock, RwLockReadGuard, RwLockWriteGuard}};
 
 pub enum CyclerErrors {
     DuplicatedOption,
@@ -6,6 +6,18 @@ pub enum CyclerErrors {
     EmptyCycler,
     AttemptedLastOptionRemoval,
     PossibleDataCorruption
+}
+
+impl Debug for CyclerErrors {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::DuplicatedOption => write!(f, "DuplicatedOption"),
+            Self::OptionNotFound => write!(f, "OptionNotFound"),
+            Self::EmptyCycler => write!(f, "EmptyCycler"),
+            Self::AttemptedLastOptionRemoval => write!(f, "AttemptedLastOptionRemoval"),
+            Self::PossibleDataCorruption => write!(f, "PossibleDataCorruption"),
+        }
+    }
 }
 
 pub struct MochaCycler<T> where T: Clone + PartialEq{
