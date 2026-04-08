@@ -20,12 +20,12 @@ impl Debug for CyclerErrors {
     }
 }
 
-pub struct MochaCycler<T> where T: Clone + PartialEq{
+pub struct MochaCycler<T> where T: Clone{
     index: usize,
     options: Vec<T>
 }
 
-impl<T> MochaCycler<T> where T: Clone + PartialEq{
+impl<T> MochaCycler<T> where T: Clone{
     pub fn new(options: Vec<T>) -> Result<MochaCycler<T>, CyclerErrors> {
         let option_count = options.len();
         if option_count < 1 {
@@ -34,14 +34,14 @@ impl<T> MochaCycler<T> where T: Clone + PartialEq{
         Ok(MochaCycler { index: 0, options: options })
     }
 
-    pub fn add_option(&mut self, new_option: T) -> Result<usize, CyclerErrors> {
+    pub fn add_option(&mut self, new_option: T) -> Result<usize, CyclerErrors> where T: PartialEq {
 
         let result = self.add_option_inner(new_option);
 
         return result;
     }
 
-    fn add_option_inner(&mut self, new_option: T) -> Result<usize, CyclerErrors> {
+    fn add_option_inner(&mut self, new_option: T) -> Result<usize, CyclerErrors> where T: PartialEq {
 
         if self.options.contains(&new_option) {
             return Err(CyclerErrors::DuplicatedOption)
@@ -55,7 +55,7 @@ impl<T> MochaCycler<T> where T: Clone + PartialEq{
         
     }
 
-    pub fn add_options(&mut self, new_options: Vec<T>) -> Vec<Result<usize, CyclerErrors>> {
+    pub fn add_options(&mut self, new_options: Vec<T>) -> Vec<Result<usize, CyclerErrors>> where T: PartialEq {
         let mut results = Vec::new();
         for i in new_options {
             results.push(self.add_option_inner(i));
@@ -81,12 +81,12 @@ impl<T> MochaCycler<T> where T: Clone + PartialEq{
         Ok(self.options.remove(index))
     }
 
-    pub fn remove_option(&mut self, option: T) -> Result<T, CyclerErrors> {
+    pub fn remove_option(&mut self, option: T) -> Result<T, CyclerErrors>where T: PartialEq {
         let result: Result<T, CyclerErrors> = self.remove_option_inner(option);
         result
     }
 
-    fn remove_option_inner(&mut self, option: T) -> Result<T, CyclerErrors> {
+    fn remove_option_inner(&mut self, option: T) -> Result<T, CyclerErrors> where T: PartialEq {
         if self.options.len() < 2{
             return Err(CyclerErrors::AttemptedLastOptionRemoval)
         }
@@ -118,7 +118,7 @@ impl<T> MochaCycler<T> where T: Clone + PartialEq{
         return results
     }
 
-    pub fn remove_options(&mut self, options: Vec<T>) -> Vec<Result<T, CyclerErrors>> {
+    pub fn remove_options(&mut self, options: Vec<T>) -> Vec<Result<T, CyclerErrors>> where T: PartialEq {
         let mut results = Vec::new();
         for i in options {
             results.push(self.remove_option_inner(i));
@@ -183,12 +183,12 @@ impl<T> MochaCycler<T> where T: Clone + PartialEq{
 
 }
 
-pub struct FatMochaCycler<T> where T: Clone + PartialEq{
+pub struct FatMochaCycler<T> where T: Clone {
     index: RwLock<usize>,
     options: RwLock<Vec<T>>
 }
 
-impl<T> FatMochaCycler<T> where T: Clone + PartialEq{
+impl<T> FatMochaCycler<T> where T: Clone {
     pub fn new(options: Vec<T>) -> Result<FatMochaCycler<T>, CyclerErrors> {
         let option_count = options.len();
         if option_count < 1 {
@@ -197,7 +197,7 @@ impl<T> FatMochaCycler<T> where T: Clone + PartialEq{
         Ok(FatMochaCycler { index: RwLock::new(0), options: RwLock::new(options) })
     }
 
-    pub fn add_option(&self, new_option: T) -> Result<usize, CyclerErrors> {
+    pub fn add_option(&self, new_option: T) -> Result<usize, CyclerErrors> where T: PartialEq {
         let mut writer = self.options.write().unwrap();
 
         let result = self.add_option_inner(new_option, &mut writer);
@@ -207,7 +207,7 @@ impl<T> FatMochaCycler<T> where T: Clone + PartialEq{
         return result;
     }
 
-    fn add_option_inner(&self, new_option: T, writer: &mut RwLockWriteGuard<'_, Vec<T>>) -> Result<usize, CyclerErrors> {
+    fn add_option_inner(&self, new_option: T, writer: &mut RwLockWriteGuard<'_, Vec<T>>) -> Result<usize, CyclerErrors> where T: PartialEq {
 
         if writer.contains(&new_option) {
             return Err(CyclerErrors::DuplicatedOption)
@@ -221,7 +221,7 @@ impl<T> FatMochaCycler<T> where T: Clone + PartialEq{
         
     }
 
-    pub fn add_options(&self, new_options: Vec<T>) -> Vec<Result<usize, CyclerErrors>> {
+    pub fn add_options(&self, new_options: Vec<T>) -> Vec<Result<usize, CyclerErrors>> where T: PartialEq {
         let mut results = Vec::new();
         let mut writer = self.options.write().unwrap();
         for i in new_options {
@@ -232,7 +232,7 @@ impl<T> FatMochaCycler<T> where T: Clone + PartialEq{
         return results
     }
 
-    pub fn remove_option_by_index(&self, index: usize) -> Result<T, CyclerErrors> {
+    pub fn remove_option_by_index(&self, index: usize) -> Result<T, CyclerErrors> where T: PartialEq {
         let result: Result<T, CyclerErrors>;
         {
             let mut writer = self.options.write().unwrap();
@@ -242,7 +242,7 @@ impl<T> FatMochaCycler<T> where T: Clone + PartialEq{
         result
     }
 
-    fn remove_option_by_index_inner(&self, index: usize, writer: &mut RwLockWriteGuard<'_, Vec<T>>) -> Result<T, CyclerErrors> {
+    fn remove_option_by_index_inner(&self, index: usize, writer: &mut RwLockWriteGuard<'_, Vec<T>>) -> Result<T, CyclerErrors> where T: PartialEq {
         if writer.len() < 2{
             return Err(CyclerErrors::AttemptedLastOptionRemoval)
         }
@@ -252,7 +252,7 @@ impl<T> FatMochaCycler<T> where T: Clone + PartialEq{
         Ok(writer.remove(index))
     }
 
-    pub fn remove_option(&self, option: T) -> Result<T, CyclerErrors> {
+    pub fn remove_option(&self, option: T) -> Result<T, CyclerErrors> where T: PartialEq {
         let result: Result<T, CyclerErrors>;
         {
             let mut writer = self.options.write().unwrap();
@@ -262,7 +262,7 @@ impl<T> FatMochaCycler<T> where T: Clone + PartialEq{
         result
     }
 
-    fn remove_option_inner(&self, option: T, writer: &mut RwLockWriteGuard<'_, Vec<T>>) -> Result<T, CyclerErrors> {
+    fn remove_option_inner(&self, option: T, writer: &mut RwLockWriteGuard<'_, Vec<T>>) -> Result<T, CyclerErrors> where T: PartialEq {
         if writer.len() < 2{
             return Err(CyclerErrors::AttemptedLastOptionRemoval)
         }
@@ -275,7 +275,7 @@ impl<T> FatMochaCycler<T> where T: Clone + PartialEq{
         result
     }
 
-    pub fn remove_options_by_index(&self, mut indexes: Vec<usize>) -> Vec<Result<T, CyclerErrors>> {
+    pub fn remove_options_by_index(&self, mut indexes: Vec<usize>) -> Vec<Result<T, CyclerErrors>> where T: PartialEq {
         // let us not have index mismatch fuckery, shall we?
         indexes.sort();
         indexes.reverse();
@@ -290,7 +290,7 @@ impl<T> FatMochaCycler<T> where T: Clone + PartialEq{
         return results
     }
 
-    pub fn remove_options(&self, options: Vec<T>) -> Vec<Result<T, CyclerErrors>> {
+    pub fn remove_options(&self, options: Vec<T>) -> Vec<Result<T, CyclerErrors>> where T: PartialEq {
         let mut results = Vec::new();
         {
             let mut writer = self.options.write().unwrap();
