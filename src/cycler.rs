@@ -133,6 +133,10 @@ impl<T> MochaCycler<T> where T: Clone{
         self.index %= option_count;
     }
 
+    pub fn get_options(&self) -> Vec<T> {
+        self.options.clone()
+    }
+
     pub fn get_current(&self) -> T {
         self.options[self.index].clone()
     }
@@ -325,6 +329,13 @@ impl<T> FatMochaCycler<T> where T: Clone {
         let mut index_writer = self.index.write().unwrap();
         let option_count = options_reader.len();
         *index_writer %= option_count;
+    }
+
+
+
+    pub fn get_options(&self) -> Vec<T> {
+        let options_reader = self.options.read().unwrap();
+        (*options_reader).clone()
     }
 
     pub fn get_current(&self) -> T {
