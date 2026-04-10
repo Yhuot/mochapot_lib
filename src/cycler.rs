@@ -137,11 +137,28 @@ impl<T> MochaCycler<T> where T: Clone{
         self.options[self.index].clone()
     }
 
+    pub fn get_current_index(&self) -> usize {
+        self.index
+    }
+
     pub fn peek_next(&self, step: usize) -> T {
         let option_count = self.options.len();
         let target = (self.index + step) % option_count;
         
         self.options[target].clone()
+    }
+
+    pub fn peek_previous_index(&self, step: usize) -> usize {
+        let option_count = self.options.len();
+        let step_back = option_count - (step % option_count);
+        self.peek_next_index(step_back)
+    }
+
+    pub fn peek_next_index(&self, step: usize) -> usize {
+        let option_count = self.options.len();
+        let target = (self.index + step) % option_count;
+        
+        target
     }
 
     pub fn peek_previous(&self, step: usize) -> T{
@@ -329,11 +346,36 @@ impl<T> FatMochaCycler<T> where T: Clone {
         options_reader[target].clone()
     }
 
+    pub fn get_current_index(&self) -> usize  {
+        let index_reader = self.index.read().unwrap();
+        *index_reader
+    }
+
+    pub fn peek_next_index(&self, step: usize) -> usize {
+        let options_reader = self.options.read().unwrap();
+        self.peek_next_inner_index(step, &options_reader)
+    }
+
+    pub fn peek_next_inner_index(&self, step: usize, options_reader: &RwLockReadGuard<'_, Vec<T>>) -> usize {
+        let index_reader = self.index.read().unwrap();
+        let option_count = options_reader.len();
+        let target = (*index_reader + step) % option_count;
+        
+        target
+    }
+
     pub fn peek_previous(&self, step: usize) -> T{
         let option_reader = self.options.read().unwrap();
         let option_count = option_reader.len();
         let step_back = option_count - (step % option_count);
         self.peek_next_inner(step_back, &option_reader)
+    }
+
+    pub fn peek_previous_index(&self, step: usize) -> usize{
+        let option_reader = self.options.read().unwrap();
+        let option_count = option_reader.len();
+        let step_back = option_count - (step % option_count);
+        self.peek_next_inner_index(step_back, &option_reader)
     }
 
     pub fn advance(&self, count: usize) {
