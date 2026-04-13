@@ -211,13 +211,26 @@ unsafe impl<T: Send> Sync for Arch<T> {}
 
 impl<T> Arch<T> {
 
-    pub fn get(&self) -> T where T: Clone {
+    pub fn get(&self) -> T where T: Copy {
+        *self.reader()
+    }
+
+    pub fn get_clone(&self) -> T where T: Clone {
         (*self.reader()).clone()
     }
 
     pub fn swap(&self, new_value: &mut T) {
         let mut writer = self.writer();
         std::mem::swap(&mut *writer, new_value);
+    }
+
+    pub fn meddle<F, R>(&self, f: F) -> R
+        where
+            F: for<'a> FnOnce(&'a mut T) -> R
+    {
+        let mut writer = self.writer();
+        let result = f(&mut *writer);
+        result
     }
 
     pub fn new(data: T) -> Arch<T> {
