@@ -227,10 +227,10 @@ impl<T> MochaLock<T> {
     }
 
     #[cfg(feature = "async")]
-    pub async fn async_meddle<F, Fut, R>(&self, f: F) -> R
+    pub async fn async_meddle<F, R>(&self, f: F) -> R
         where
-            F: for<'a> FnOnce(&'a mut T) -> Fut,
-            Fut: Future<Output = R>,
+            F: for<'a> FnOnce(&'a mut T)
+                -> Pin<Box<dyn Future<Output = R> + 'a>>,
     {
         let mut writer = self.writer();
         f(&mut *writer).await
