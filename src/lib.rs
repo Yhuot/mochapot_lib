@@ -1,4 +1,4 @@
-pub mod arch;
+pub mod mocha_lock;
 pub mod cycler;
 pub mod blocker;
 pub mod threading;

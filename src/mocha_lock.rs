@@ -8,12 +8,12 @@ use std::sync::atomic::Ordering;
 use crate::helper_functions::{wait_for_memory, wake_all_by_memory};
 
 
-struct ArchLock {
+struct MochaLockLock {
     reader_count: AtomicI32, // the amount of readers, do i really have to explain?
     lock_state: AtomicI32, // 0 = no writer, unlocked; 1 = no writer, unlocked, has readers though; 2 = yes writer, locked.
 }
 
-impl ArchLock {
+impl MochaLockLock {
 
     // little reminder: wait_for_memory(ptr, expected) stops the thread for as long as the value in the ptr actually is expected, it DOESN'T wait until the value equates to expected
 
@@ -75,25 +75,25 @@ impl ArchLock {
     }
 
     fn free_writer(&self) {
-        // attempt to unlock the arch.
+        // attempt to unlock the MochaLock.
         if self.lock_state.compare_exchange(2, 0, Ordering::Release, Ordering::Relaxed).is_ok() {
-            // if the arch was in fact locked, notify a possible waiter.
+            // if the MochaLock was in fact locked, notify a possible waiter.
             wake_all_by_memory(self.lock_state.as_ptr() as *const i32);
         }
     }
 }
 
-struct InnerArch<T> {
-    lock: ArchLock,
+struct InnerMochaLock<T> {
+    lock: MochaLockLock,
     ref_count: AtomicI32,
     value: T
 }
 
-impl<T> InnerArch<T> {
+impl<T> InnerMochaLock<T> {
 
-    fn new(data: T) -> NonNull<InnerArch<T>>{
-        let inner = InnerArch {
-            lock: ArchLock { reader_count: AtomicI32::new(0), lock_state: AtomicI32::new(0) },
+    fn new(data: T) -> NonNull<InnerMochaLock<T>>{
+        let inner = InnerMochaLock {
+            lock: MochaLockLock { reader_count: AtomicI32::new(0), lock_state: AtomicI32::new(0) },
             ref_count: AtomicI32::new(1),
             value: data
         };
@@ -116,100 +116,100 @@ impl<T> InnerArch<T> {
     }
 }
 
-pub struct ArchReader<'a, T> { 
-    arch: &'a Arch<T>,
+pub struct MochaLockReader<'a, T> { 
+    mocha_lock: &'a MochaLock<T>,
     phantom: PhantomData<*const ()>
 }
 
 
-impl<'a, T> ArchReader<'a, T> {
-    fn spin(arch: &'a Arch<T>) -> Self{
+impl<'a, T> MochaLockReader<'a, T> {
+    fn spin(mocha_lock: &'a MochaLock<T>) -> Self{
         unsafe {
-            arch.pointer.as_ref().lock.request_read();
-            return Self { arch: arch, phantom: Default::default() }
+            mocha_lock.pointer.as_ref().lock.request_read();
+            return Self { mocha_lock: mocha_lock, phantom: Default::default() }
         }
     }
 
-    pub fn to_writer(self) -> ArchWriter<'a, T>{
-        let arch_ref = self.arch;
+    pub fn to_writer(self) -> MochaLockWriter<'a, T>{
+        let mocha_lock_ref = self.mocha_lock;
         std::mem::drop(self);
-        return ArchWriter::spin(arch_ref);
+        return MochaLockWriter::spin(mocha_lock_ref);
     }
 }
 
-impl<'a, T> Drop for ArchReader<'a, T> {
+impl<'a, T> Drop for MochaLockReader<'a, T> {
     fn drop(&mut self) {
         unsafe {
-            self.arch.pointer.as_ref().lock.free_reader();
+            self.mocha_lock.pointer.as_ref().lock.free_reader();
         }
     }
 }
 
-impl<'a, T> Deref for ArchReader<'a, T> {
+impl<'a, T> Deref for MochaLockReader<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
         unsafe {
-            &self.arch.pointer.as_ref().value
+            &self.mocha_lock.pointer.as_ref().value
         }
     }
 }
 
-pub struct ArchWriter<'a, T> { 
-    arch: &'a Arch<T>,
+pub struct MochaLockWriter<'a, T> { 
+    mocha_lock: &'a MochaLock<T>,
     phantom: PhantomData<*const ()>
 }
 
 
-impl<'a, T> ArchWriter<'a, T> {
-    fn spin(arch: &'a Arch<T>) -> Self{
+impl<'a, T> MochaLockWriter<'a, T> {
+    fn spin(mocha_lock: &'a MochaLock<T>) -> Self{
         unsafe {
-            arch.pointer.as_ref().lock.request_write();
-            return Self { arch: arch, phantom: Default::default() }
+            mocha_lock.pointer.as_ref().lock.request_write();
+            return Self { mocha_lock: mocha_lock, phantom: Default::default() }
         }
     }
 
-    pub fn to_reader(self) -> ArchReader<'a, T> {
-        let arch_ref = self.arch;
+    pub fn to_reader(self) -> MochaLockReader<'a, T> {
+        let mocha_lock_ref = self.mocha_lock;
         std::mem::drop(self);
-        return ArchReader::spin(arch_ref);
+        return MochaLockReader::spin(mocha_lock_ref);
     }
 }
 
-impl<'a, T> Drop for ArchWriter<'a, T> {
+impl<'a, T> Drop for MochaLockWriter<'a, T> {
     fn drop(&mut self) {
         unsafe {
-            self.arch.pointer.as_ref().lock.free_writer();
+            self.mocha_lock.pointer.as_ref().lock.free_writer();
         }
     }
 }
 
-impl<'a, T> Deref for ArchWriter<'a, T> {
+impl<'a, T> Deref for MochaLockWriter<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
         unsafe {
-            &self.arch.pointer.as_ref().value
+            &self.mocha_lock.pointer.as_ref().value
         }
     }
 }
 
-impl<'a, T> DerefMut for ArchWriter<'a, T> {
+impl<'a, T> DerefMut for MochaLockWriter<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe {
-            &mut (*self.arch.pointer.as_ptr()).value
+            &mut (*self.mocha_lock.pointer.as_ptr()).value
         }
     }
 }
 
-pub struct Arch<T> {
-    pointer: NonNull<InnerArch<T>>,
+pub struct MochaLock<T> {
+    pointer: NonNull<InnerMochaLock<T>>,
 }
 
-unsafe impl<T: Send> Send for Arch<T> {}
-unsafe impl<T: Send> Sync for Arch<T> {}
+unsafe impl<T: Send> Send for MochaLock<T> {}
+unsafe impl<T: Send> Sync for MochaLock<T> {}
 
-impl<T> Arch<T> {
+impl<T> MochaLock<T> {
 
     pub fn get(&self) -> T where T: Copy {
         *self.reader()
@@ -233,25 +233,25 @@ impl<T> Arch<T> {
         result
     }
 
-    pub fn new(data: T) -> Arch<T> {
-        Arch { pointer: InnerArch::new(data) }
+    pub fn new(data: T) -> MochaLock<T> {
+        MochaLock { pointer: InnerMochaLock::new(data) }
     }
 
-    pub fn extend(&self) -> Arch<T> {
+    pub fn extend(&self) -> MochaLock<T> {
         unsafe {
             self.pointer.as_ref().raise();
         }
-        Arch { pointer: self.pointer }
+        MochaLock { pointer: self.pointer }
     }
 
-    pub fn reader(&self) -> ArchReader<'_, T> {
+    pub fn reader(&self) -> MochaLockReader<'_, T> {
         // start off Guard as inactive
-        return ArchReader::spin(&self);
+        return MochaLockReader::spin(&self);
     }
 
-    pub fn writer(&self) -> ArchWriter<'_, T> {
+    pub fn writer(&self) -> MochaLockWriter<'_, T> {
         // start off Guard as inactive
-        return ArchWriter::spin(&self);
+        return MochaLockWriter::spin(&self);
     }
 
     pub fn is_write_locked(&self) -> bool {
@@ -263,7 +263,7 @@ impl<T> Arch<T> {
     }
 }
 
-impl<T> Drop for Arch<T> { 
+impl<T> Drop for MochaLock<T> { 
     fn drop(&mut self) {
         unsafe {
             if self.pointer.as_ref().lower() <= 1 {
@@ -273,7 +273,7 @@ impl<T> Drop for Arch<T> {
     }
 }
 
-impl<T> Clone for Arch<T> {
+impl<T> Clone for MochaLock<T> {
     fn clone(&self) -> Self {
         self.extend()
     }
