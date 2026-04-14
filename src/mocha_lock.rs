@@ -1,5 +1,7 @@
 use std::marker::PhantomData;
 use std::ops::DerefMut;
+#[cfg(feature = "async")]
+use std::future::Future;
 use std::ptr::NonNull;
 use std::{ops::Deref};
 use std::sync::atomic::{AtomicI32};
@@ -222,6 +224,16 @@ impl<T> MochaLock<T> {
     pub fn swap(&self, new_value: &mut T) {
         let mut writer = self.writer();
         std::mem::swap(&mut *writer, new_value);
+    }
+
+    #[cfg(feature = "async")]
+    pub async fn async_meddle<F, Fut, R>(&self, f: F) -> R
+        where
+            F: for<'a> FnOnce(&'a mut T) -> Fut,
+            Fut: Future<Output = R>,
+    {
+        let mut writer = self.writer();
+        f(&mut *writer).await
     }
 
     pub fn meddle<F, R>(&self, f: F) -> R
