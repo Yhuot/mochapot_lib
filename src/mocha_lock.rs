@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 use std::ops::DerefMut;
 #[cfg(feature = "async")]
 use std::future::Future;
+use std::pin::Pin;
 use std::ptr::NonNull;
 use std::{ops::Deref};
 use std::sync::atomic::{AtomicI32};
