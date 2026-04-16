@@ -246,6 +246,24 @@ impl<T> MochaLock<T> {
         result
     }
 
+    #[cfg(feature = "async")]
+    pub async fn async_observe<F, R>(&self, f: F) -> R
+        where
+            F: for<'a> FnOnce(&'a T)
+                -> Pin<Box<dyn Future<Output = R> + 'a>>,
+    {
+        let reader = self.reader();
+        f(&*reader).await
+    }
+
+    pub fn observe<F, R>(&self, f: F) -> R
+        where
+            F: for<'a> FnOnce(&'a T) -> R
+    {
+        let reader = self.reader();
+        f(&*reader)
+    }
+
     pub fn new(data: T) -> MochaLock<T> {
         MochaLock { pointer: InnerMochaLock::new(data) }
     }
