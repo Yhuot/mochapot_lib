@@ -20,15 +20,9 @@ version = "0.0.0"
 dependencies = [
  "libc",
  "linux-raw-sys",
- "mochapot_lib_macros",
  "serde",
  "windows-sys",
 ]
-
-[[package]]
-name = "mochapot_lib_macros"
-version = "0.1.0"
-source = "git+ssh://git@github.com/Yhuot/mochapot_lib_macros.git?tag=0.0.0-pre-release-5#57c0704ebc32005e915e3ff16de781b7edf7232d"
 
 [[package]]
 name = "proc-macro2"
