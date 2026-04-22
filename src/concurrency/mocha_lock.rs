@@ -1,6 +1,5 @@
 use std::marker::PhantomData;
 use std::ops::DerefMut;
-use std::thread;
 #[cfg(feature = "async")]
 use std::{future::Future, pin::Pin};
 use std::ptr::NonNull;
