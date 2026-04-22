@@ -2,6 +2,8 @@
 
 > Experimental Rust utilities and concurrency primitives for modular, low-level control.
 
+> This is the product of "not invented here" meets "I like reinventing the wheel".
+
 ---
 
 ## ⚠️ Stability Notice
@@ -20,7 +22,8 @@ Use at your own risk. (Or better yet, use one of the already existing widely ado
 
 `mochapot_lib` is a personal utility crate focused on:
 
-* Whatever i need it to be :D
+* Quality of life helpers, added on demand.
+* Whatever i need it to be in the future! :D
 * Lightweight data structures
 * Exploration of low-level concurrency in Rust
 
@@ -91,6 +94,8 @@ assert_eq!(cycler.get_current(), 2);
 
 * **Bad ideas!!!**
 * **Good luck!!!** — Use at your own risk, or don't, parking-lot is just around the corner and *~It just works™*
+* **Experimental ideas** — some intentionally unconventional
+* **Use with caution** — correctness is still being explored
 * **Low-level when needed** — abstractions are optional, not enforced
 * **Experimental** — correctness and performance are explored iteratively (nothin' here is safe)
 
@@ -124,7 +129,7 @@ I have put this clause here because i am not sure what licensing i will even use
 
 ## Notes on AI
 
-Yes, AI has been used in the making of this crate, yes, i used whatever classifies as vibe-coding in the past, as of now i attempt to avoid it for important things, however, as of now, most of the code is human sourced, the human being me, ofc, and yes, the documentation is nearly entirely AI writen, yes, cometh onwards, stone me, curse me, hate me, mail me a bullet or something, me is no good with words, so me will let the funny electronic brain do word things.
+Yes, AI has been used in the making of this crate, yes, i used whatever classifies as vibe-coding in the past, as of now i attempt to avoid it for important things as it has failed me time and time again, as of now, most of the code is human sourced, the human being me, ofc, and yes, the documentation is nearly entirely AI writen, yes, cometh onwards, stone me, curse me, hate me, mail me a bullet or something, me is no good with words, so me will let the funny electronic brain do word things.
 
 ## Closing Thoughts
 
