@@ -1,8 +1,4 @@
-pub mod mocha_lock;
+#[cfg(feature = "concurrency")]
+pub mod concurrency;
 pub mod cycler;
-pub mod blocker;
-pub mod threading;
-pub mod helper_functions;
-
-#[cfg(test)]
-pub mod tests;
+mod helper_functions;

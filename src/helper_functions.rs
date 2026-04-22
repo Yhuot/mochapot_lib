@@ -57,6 +57,7 @@ pub fn wait_for_memory(addr: *const i32, expected: i32) {
 }
 
 #[cfg(target_os = "linux")]
+#[allow(unused)]
 pub fn wake_by_memory(addr: *const i32, n: i32) {
     unsafe {
         futex_wake(

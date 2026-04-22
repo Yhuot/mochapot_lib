@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"rust-analyzer.cargo.features": [
+			"full"
+		],
+		"rust-analyzer.cargo.cfgs": [
+			"debug_assertions",
+			"miri",
+			"loom",
+			"serde"
+		]
+	}
+}

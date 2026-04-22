@@ -11,8 +11,12 @@ windows-sys = { version = "0.61.2", features = [
     "Win32_Foundation"
 ] }
 mochapot_lib_macros = { git = "ssh://git@github.com/Yhuot/mochapot_lib_macros.git", tag = "0.0.0-pre-release-5" }
-tokio = { version = "1.51.1", features = ["full"], optional=true }
-tokio-macros = { version = "2.7.0", optional = true }
+serde = { version = "1.0.228", optional = true, features = ["derive"]}
+
 
 [features]
-async = ["dep:tokio", "tokio/macros"]
+async = []
+concurrency = []
+serde = ["dep:serde", "serde/derive"]
+full = ["async", "concurrency", "serde"]
+

@@ -204,11 +204,14 @@ impl<T> MochaCycler<T> where T: Clone{
 
 }
 
+#[cfg(feature = "concurrency")]
 pub struct FatMochaCycler<T> where T: Clone {
     index: RwLock<usize>,
     options: RwLock<Vec<T>>
 }
 
+
+#[cfg(feature = "concurrency")]
 impl<T> FatMochaCycler<T> where T: Clone {
     pub fn new(options: Vec<T>) -> Result<FatMochaCycler<T>, CyclerErrors> {
         let option_count = options.len();
