@@ -34,65 +34,63 @@ unsafe fn futex_wake(addr: *const i32, n: i32) {
     );
 }
 
-#[cfg(target_os = "linux")]
 pub fn wait_for_memory(addr: *const i32, expected: i32) {
     unsafe {
-        futex_wait(
-            addr,
-            expected,
-        )
+        #[cfg(target_os = "linux")]
+        {
+            futex_wait(
+                addr,
+                expected,
+            );
+            return
+        }
+        #[cfg(target_os = "windows")]
+        {
+            WaitOnAddress(
+                addr as *const _,
+                &expected as *const _ as *const _,
+                4,
+                INFINITE,
+            );
+        }
     }
 }
 
-#[cfg(target_os = "windows")]
-pub fn wait_for_memory(addr: *const i32, expected: i32) {
-    unsafe {
-        WaitOnAddress(
-            addr as *const _,
-            &expected as *const _ as *const _,
-            4,
-            INFINITE,
-        );
-    }
-}
-
-#[cfg(target_os = "linux")]
-#[allow(unused)]
 pub fn wake_by_memory(addr: *const i32, n: i32) {
     unsafe {
-        futex_wake(
-            addr,
-            n,
-        )
+        #[cfg(target_os = "linux")]
+        {
+            futex_wake(
+                addr,
+                n,
+            )
+        }
+        #[cfg(target_os = "windows")]
+        {
+            WakeByAddressSingle(
+                addr as *const _
+            );
+        }
     }
 }
 
-#[cfg(target_os = "windows")]
-pub fn wake_by_memory(addr: *const i32, n: i32) {
-    unsafe {
-        WakeByAddressSingle(
-            addr as *const _
-        );
-    }
-}
-
-#[cfg(target_os = "linux")]
 pub fn wake_all_by_memory(addr: *const i32) {
     unsafe {
-        use std::i32;
+        #[cfg(target_os = "linux")]
+        {
+            use std::i32;
 
-        futex_wake(
-            addr,
-            i32::MAX,
-        )
-    }
-}
-
-#[cfg(target_os = "windows")]
-pub fn wake_all_by_memory(addr: *const i32, n: i32) {
-    unsafe {
-        WakeByAddressAll(
-            addr as *const _
-        );
+            futex_wake(
+                addr,
+                i32::MAX,
+            );
+            return
+        }
+        #[cfg(target_os = "windows")]
+        {
+            WakeByAddressAll(
+                addr as *const _
+            );
+        }
     }
 }
