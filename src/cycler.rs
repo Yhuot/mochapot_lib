@@ -1,3 +1,31 @@
+//! Circular data structures for cycling through values.
+//!
+//! ## Overview
+//!
+//! Provides utilities for iterating over a collection in a circular manner.
+//!
+//! Supports:
+//! - Forward/backward movement
+//! - Peeking without advancing
+//! - Safe index handling after mutations
+//!
+//! ## Types
+//!
+//! - [`MochaCycler`] – single-threaded
+//! - [`FatMochaCycler`] – thread-safe (requires `concurrency` feature)
+//!
+//! ## Example
+//!
+//! ```rust
+//! use mochapot_lib::cycler::MochaCycler;
+//!
+//! let mut cycler = MochaCycler::new(vec![1, 2, 3]).unwrap();
+//! assert_eq!(cycler.get_current(), 1);
+//!
+//! cycler.advance_then_get(1);
+//! assert_eq!(cycler.get_current(), 2);
+//! ```
+
 use std::{fmt::Debug, sync::{RwLock, RwLockReadGuard, RwLockWriteGuard}};
 
 pub enum CyclerErrors {
