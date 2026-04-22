@@ -3,6 +3,9 @@ name = "mochapot_lib"
 version = "0.0.0"
 edition = "2024"
 license = "MIT"
+description = "Experimental Rust utilities and concurrency primitives"
+repository = "https://github.com/Yhuot/mochapot_lib"
+readme = "README.md"
 
 [dependencies]
 libc = "0.2.183"
