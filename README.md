@@ -122,6 +122,10 @@ I have put this clause here because i am not sure what licensing i will even use
 
 ---
 
+## Notes on AI
+
+Yes, AI has been used in the making of this crate, yes, i used whatever classifies as vibe-coding in the past, as of now i attempt to avoid it for important things, however, as of now, most of the code is human sourced, the human being me, ofc, and yes, the documentation is nearly entirely AI writen, yes, cometh onwards, stone me, curse me, hate me, mail me a bullet or something, me is no good with words, so me will let the funny electronic brain do word things.
+
 ## Closing Thoughts
 
 This crate exists at the intersection of:
