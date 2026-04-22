@@ -26,7 +26,9 @@
 //! assert_eq!(cycler.get_current(), 2);
 //! ```
 
-use std::{fmt::Debug, sync::{RwLock, RwLockReadGuard, RwLockWriteGuard}};
+use std::{fmt::Debug};
+#[cfg(feature = "concurrency")]
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 pub enum CyclerErrors {
     DuplicatedOption,
