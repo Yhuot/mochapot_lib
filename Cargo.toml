@@ -23,3 +23,5 @@ concurrency = []
 serde = ["dep:serde", "serde/derive"]
 full = ["async", "concurrency", "serde"]
 
+[lints.rust]
+ unexpected_cfgs = { level = "warn", check-cfg = ['cfg(non_sequential_testing)'] }

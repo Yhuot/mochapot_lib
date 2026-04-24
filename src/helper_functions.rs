@@ -1,11 +1,5 @@
-#[allow(unused_imports)]
-use windows_sys::Win32::System::Threading::INFINITE;
-#[allow(unused_imports)]
-use windows_sys::Win32::System::Threading::WaitOnAddress;
-#[allow(unused_imports)]
-use windows_sys::Win32::System::Threading::WakeByAddressSingle;
-#[allow(unused_imports)]
-use windows_sys::Win32::System::Threading::WakeByAddressAll;
+#[cfg(target_os = "windows")]
+use windows_sys::Win32::System::Threading::{INFINITE, WaitOnAddress, WakeByAddressSingle, WakeByAddressAll};
 
 use libc::{syscall, SYS_futex};
 
@@ -82,9 +76,14 @@ pub fn wait_for_memory(addr: *const i32, expected: i32) {
                 INFINITE,
             );
         }
+        #[cfg(target_os = "macos")]
+        {
+            compile_error!("macOS is not supported. Use Linux (<3) or (eugh) Windows.)");
+        }
     }
 }
 
+#[allow(unused)]
 pub fn wake_by_memory(addr: *const i32, n: i32) {
     unsafe {
         #[cfg(target_os = "linux")]
@@ -99,6 +98,10 @@ pub fn wake_by_memory(addr: *const i32, n: i32) {
             WakeByAddressSingle(
                 addr as *const _
             );
+        }
+        #[cfg(target_os = "macos")]
+        {
+            compile_error!("macOS is not supported. Use Linux (<3) or (eugh) Windows.)");
         }
     }
 }
@@ -120,6 +123,10 @@ pub fn wake_all_by_memory(addr: *const i32) {
             WakeByAddressAll(
                 addr as *const _
             );
+        }
+        #[cfg(target_os = "macos")]
+        {
+            compile_error!("macOS is not supported. Use Linux (<3) or (eugh) Windows.)");
         }
     }
 }

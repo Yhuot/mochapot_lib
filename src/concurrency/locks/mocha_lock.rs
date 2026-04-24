@@ -44,17 +44,10 @@ HOWEVER, none of the actual logic and code are vibe coded, for no Artificial Int
 struct MochaLockLock {
     reader_count: AtomicUsize,
     lock_state: AtomicUsize, 
-    transitioning_reader_count: AtomicUsize
+    transitioning_reader_count: AtomicUsize,
 }
 
 impl MochaLockLock {
-    fn is_write_locked(&self) -> bool {
-        self.lock_state.load(Ordering::Acquire) > 1
-    }
-
-    fn reader_count(&self) -> usize {
-        self.reader_count.load(Ordering::Acquire)
-    }
 
     fn free_reader(&self) {
         if self.reader_count.fetch_sub(1, Ordering::AcqRel) == 1 {
@@ -112,16 +105,21 @@ impl MochaLockLock {
     }
 
     fn force_write(&self) {
+        //println!("Someone tried to upgrade...");
         self.transitioning_reader_count.fetch_add(1, Ordering::Release);
-        self.reader_count.fetch_sub(1, Ordering::Release);
+        self.free_reader();
         loop {
             match self.lock_state.compare_exchange(3, 2, Ordering::AcqRel, Ordering::Acquire) {
                 Ok(_) => {
+                    //println!("State was 3!");
                     self.transitioning_reader_count.fetch_sub(1, Ordering::Release);
+                    //println!("Lowered transitioning reader count!");
                     wake_all_by_memory(self.transitioning_reader_count.as_ptr() as *const i32);
+                    //println!("Woke up everyone trying to read from it!");
                     return
                 },
                 Err(state) => {
+                    //println!("State is {state}! waiting for that to change :D");
                     wait_for_memory(self.lock_state.as_ptr() as *const i32, state as i32);
                 },
             }
@@ -413,20 +411,6 @@ impl<T> MochaLock<T> {
     /// Acquires a write lock, returning a [`MochaLockWriter`].
     pub fn writer(&self) -> MochaLockWriter<'_, T> {
         return MochaLockWriter::spin(&self);
-    }
-
-    /// Returns whether the lock is currently write-locked.
-    ///
-    /// ⚠️ This value may become outdated immediately after being returned.
-    pub fn is_write_locked(&self) -> bool {
-        unsafe { self.pointer.as_ref().lock.is_write_locked() }
-    }
-
-    /// Returns the current number of active readers.
-    ///
-    /// ⚠️ This value may become outdated immediately after being returned.
-    pub fn reader_count(&self) -> usize {
-        unsafe { self.pointer.as_ref().lock.reader_count() }
     }
 }
 

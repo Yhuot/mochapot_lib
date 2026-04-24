@@ -15,12 +15,10 @@
 //! - Reader/writer coordination
 //! - Atomic state handling
 //! - Custom blocking behavior
+//! - Abominations
 //!
 //! ## Feature Flag
 //!
 //! This module is only available with the `concurrency` feature enabled.
 
-pub mod mocha_lock;
-
-#[cfg(test)]
-mod tests;
+pub mod locks;

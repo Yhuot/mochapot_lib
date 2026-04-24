@@ -24,7 +24,7 @@
 //!
 //! ## Modules
 //!
-//! ### `cycler`
+//! ### `cycler` (currently shoved inside `misplaced_junk` because i have no idea what to do with it for now.)
 //! Circular data structures for iterating over values.
 //!
 //! ### `concurrency` *(feature-gated)*
@@ -42,12 +42,12 @@
 //!
 //! ## Philosophy
 //!
-//! - Bad decisions
-//! - Good luck
+//! - Bad decisions !!!
+//! - Good luck !!!
 //! - Low-level control when needed
 //! - Experimentation over strict guarantees
 
 #[cfg(feature = "concurrency")]
 pub mod concurrency;
-pub mod cycler;
+pub mod misplaced_junk;
 mod helper_functions;
